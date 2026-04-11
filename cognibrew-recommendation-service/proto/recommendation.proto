@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+message Recommendation {
+  string username         = 1;
+  repeated string recommended_menu = 2;
+  string face_id          = 3; // correlate back to the original face.recognized event
+}

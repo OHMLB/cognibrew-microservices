@@ -1,0 +1,202 @@
+[
+  {
+    "item_id": "espresso",
+    "name": "Espresso",
+    "description": "A concentrated shot of coffee brewed by forcing hot water through finely ground beans.",
+    "price": 55.0,
+    "category": "Hot",
+    "tags": ["strong", "classic", "no-milk"],
+    "available": true,
+    "order_count": 0
+  },
+  {
+    "item_id": "americano-hot",
+    "name": "Americano (Hot)",
+    "description": "Espresso diluted with hot water — smooth and bold.",
+    "price": 65.0,
+    "category": "Hot",
+    "tags": ["classic", "no-milk"],
+    "available": true,
+    "order_count": 0
+  },
+  {
+    "item_id": "americano-cold",
+    "name": "Americano (Cold)",
+    "description": "Espresso diluted with cold water and ice.",
+    "price": 65.0,
+    "category": "Cold",
+    "tags": ["classic", "no-milk"],
+    "available": true,
+    "order_count": 0
+  },
+  {
+    "item_id": "latte-hot",
+    "name": "Caffe Latte (Hot)",
+    "description": "Espresso with steamed milk and a light layer of foam.",
+    "price": 80.0,
+    "category": "Hot",
+    "tags": ["milky", "smooth", "classic"],
+    "available": true,
+    "order_count": 0
+  },
+  {
+    "item_id": "latte-cold",
+    "name": "Caffe Latte (Cold)",
+    "description": "Espresso with cold milk poured over ice.",
+    "price": 80.0,
+    "category": "Cold",
+    "tags": ["milky", "smooth", "classic"],
+    "available": true,
+    "order_count": 0
+  },
+  {
+    "item_id": "cappuccino",
+    "name": "Cappuccino",
+    "description": "Equal parts espresso, steamed milk, and thick foam.",
+    "price": 80.0,
+    "category": "Hot",
+    "tags": ["milky", "foamy", "classic"],
+    "available": true,
+    "order_count": 0
+  },
+  {
+    "item_id": "flat-white",
+    "name": "Flat White",
+    "description": "Ristretto shots with velvety microfoam milk — stronger than a latte.",
+    "price": 85.0,
+    "category": "Hot",
+    "tags": ["strong", "milky", "smooth"],
+    "available": true,
+    "order_count": 0
+  },
+  {
+    "item_id": "mocha-hot",
+    "name": "Caffe Mocha (Hot)",
+    "description": "Espresso with chocolate syrup and steamed milk.",
+    "price": 90.0,
+    "category": "Hot",
+    "tags": ["sweet", "chocolate", "milky"],
+    "available": true,
+    "order_count": 0
+  },
+  {
+    "item_id": "mocha-cold",
+    "name": "Caffe Mocha (Cold)",
+    "description": "Espresso with chocolate syrup and cold milk over ice.",
+    "price": 90.0,
+    "category": "Cold",
+    "tags": ["sweet", "chocolate", "milky"],
+    "available": true,
+    "order_count": 0
+  },
+  {
+    "item_id": "caramel-macchiato-hot",
+    "name": "Caramel Macchiato (Hot)",
+    "description": "Vanilla syrup, steamed milk, espresso, and caramel drizzle.",
+    "price": 95.0,
+    "category": "Hot",
+    "tags": ["sweet", "caramel", "milky"],
+    "available": true,
+    "order_count": 0
+  },
+  {
+    "item_id": "caramel-macchiato-cold",
+    "name": "Caramel Macchiato (Cold)",
+    "description": "Vanilla syrup, cold milk, espresso, and caramel drizzle over ice.",
+    "price": 95.0,
+    "category": "Cold",
+    "tags": ["sweet", "caramel", "milky"],
+    "available": true,
+    "order_count": 0
+  },
+  {
+    "item_id": "matcha-latte-hot",
+    "name": "Matcha Latte (Hot)",
+    "description": "Premium matcha powder whisked with steamed milk.",
+    "price": 90.0,
+    "category": "Hot",
+    "tags": ["matcha", "milky", "earthy"],
+    "available": true,
+    "order_count": 0
+  },
+  {
+    "item_id": "matcha-latte-cold",
+    "name": "Matcha Latte (Cold)",
+    "description": "Premium matcha powder with cold milk over ice.",
+    "price": 90.0,
+    "category": "Cold",
+    "tags": ["matcha", "milky", "earthy"],
+    "available": true,
+    "order_count": 0
+  },
+  {
+    "item_id": "thai-tea-latte",
+    "name": "Thai Tea Latte",
+    "description": "Classic Thai tea with creamy condensed milk over ice.",
+    "price": 75.0,
+    "category": "Cold",
+    "tags": ["thai", "sweet", "milky"],
+    "available": true,
+    "order_count": 0
+  },
+  {
+    "item_id": "strawberry-smoothie",
+    "name": "Strawberry Smoothie",
+    "description": "Blended fresh strawberries with yoghurt and honey.",
+    "price": 95.0,
+    "category": "Blended",
+    "tags": ["fruity", "sweet", "no-coffee"],
+    "available": true,
+    "order_count": 0
+  },
+  {
+    "item_id": "frappuccino-caramel",
+    "name": "Caramel Frappuccino",
+    "description": "Blended coffee, milk, ice, and caramel sauce topped with whipped cream.",
+    "price": 105.0,
+    "category": "Blended",
+    "tags": ["sweet", "caramel", "cold", "coffee"],
+    "available": true,
+    "order_count": 0
+  },
+  {
+    "item_id": "croissant",
+    "name": "Butter Croissant",
+    "description": "Flaky, buttery croissant baked fresh daily.",
+    "price": 55.0,
+    "category": "Food",
+    "tags": ["bakery", "butter", "breakfast"],
+    "available": true,
+    "order_count": 0
+  },
+  {
+    "item_id": "banana-bread",
+    "name": "Banana Bread",
+    "description": "Moist banana bread slice with walnut topping.",
+    "price": 60.0,
+    "category": "Food",
+    "tags": ["bakery", "sweet", "nut-free-option"],
+    "available": true,
+    "order_count": 0
+  },
+  {
+    "item_id": "cheesecake",
+    "name": "New York Cheesecake",
+    "description": "Classic dense and creamy cheesecake with graham cracker crust.",
+    "price": 85.0,
+    "category": "Food",
+    "tags": ["dessert", "sweet", "creamy"],
+    "available": true,
+    "order_count": 0
+  },
+  {
+    "item_id": "oat-milk-latte-cold",
+    "name": "Oat Milk Latte (Cold)",
+    "description": "Espresso with oat milk over ice — dairy-free.",
+    "price": 90.0,
+    "category": "Cold",
+    "tags": ["dairy-free", "smooth", "plant-based"],
+    "available": true,
+    "order_count": 0
+  }
+]
