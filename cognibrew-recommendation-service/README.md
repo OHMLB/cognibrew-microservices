@@ -132,28 +132,20 @@ Unknown faces (empty `username`) are silently skipped.
 
 ## Deployment
 
-### Docker Compose (full stack)
+### Docker Compose (from repo root)
 
 ```bash
-docker compose -f docker-compose.test.yml up --build recommendation-service
+cd cognibrew-gateway-catalog-recommendation
+docker compose up --build
 ```
 
-The service is exposed at **http://localhost:8002** and depends on `rabbitmq` and `catalog-service`.
+The service is exposed at **http://localhost:8002**. `rabbitmq` and `catalog-service` start automatically.
 
 ### Local development (no RabbitMQ)
 
 ```bash
 pip install -r requirements.txt
-DEBUG=true uvicorn app.main:app --reload --port 8002
-```
-
-Then trigger a recommendation manually:
-```bash
-curl -X POST http://localhost:8002/api/v1/recommendation/trigger \
-  -H "Content-Type: application/json" \
-  -d '{"username": "alice", "score": 0.95}'
-
-curl http://localhost:8002/api/v1/recommendation/alice
+DEBUG=true CATALOG_SERVICE_URL=http://localhost:8000 uvicorn app.main:app --reload --port 8002
 ```
 
 Interactive docs: http://localhost:8002/docs
@@ -161,10 +153,8 @@ Interactive docs: http://localhost:8002/docs
 ## Verification
 
 ```bash
-# 1. Trigger a face recognition event (debug mode)
-curl -X POST http://localhost:8002/api/v1/recommendation/trigger \
-  -d '{"username": "alice", "score": 0.9}' \
-  -H "Content-Type: application/json"
+# 1. Fire a mock face.recognized event
+docker compose run --rm mock-recognition --username alice --score 0.95
 
 # 2. Retrieve the cached recommendation
 curl http://localhost:8002/api/v1/recommendation/alice

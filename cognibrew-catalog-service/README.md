@@ -115,10 +115,11 @@ curl -X POST http://localhost:8000/api/v1/order/ \
 
 ## Deployment
 
-### Docker Compose (full stack)
+### Docker Compose (from repo root)
 
 ```bash
-docker compose -f docker-compose.test.yml up --build catalog-service
+cd cognibrew-gateway-catalog-recommendation
+docker compose up --build catalog-service
 ```
 
 The service is exposed at **http://localhost:8000** and has no external dependencies.

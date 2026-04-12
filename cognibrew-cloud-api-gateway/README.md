@@ -122,40 +122,31 @@ In `production` mode service names resolve via Docker internal DNS. In `local` /
 
 ## Deployment
 
-### Docker Compose (full stack)
+### Docker Compose (from repo root)
 
 ```bash
-docker compose -f docker-compose.test.yml up --build api-gateway
+cd cognibrew-gateway-catalog-recommendation
+docker compose up --build
 ```
 
-The gateway is exposed at **http://localhost:8001** and depends on `rabbitmq`, `catalog-service`, and `notification-service`.
+The gateway is exposed at **http://localhost:8001**. All dependent services start automatically.
 
 ### Local development
 
 ```bash
 pip install -r requirements.txt
-DEBUG=true uvicorn app.main:app --reload --port 8000
+ENVIRONMENT=local uvicorn app.main:app --reload --port 8001
 ```
 
-Interactive docs: http://localhost:8000/api/v1/openapi.json → http://localhost:8000/docs
+Interactive docs: http://localhost:8001/docs
 
 ## Verification
 
 ```bash
-curl http://localhost:8001/api/v1/utils/health
+curl http://localhost:8001/api/v1/utils/health-check/
 ```
 
-Expected response:
-```json
-{
-  "gateway": "ok",
-  "services": [
-    { "service": "catalog", "status": "ok" },
-    { "service": "recommendation", "status": "ok" },
-    ...
-  ]
-}
-```
+Expected response: `true`
 
 ## Tech Stack
 

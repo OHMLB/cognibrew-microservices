@@ -168,8 +168,8 @@ Frontend → POST /api/v1/catalog/order/
 ## Running the Full Stack
 
 ```bash
-# From the project root
-docker compose -f docker-compose.test.yml up --build
+cd cognibrew-gateway-catalog-recommendation
+docker compose up --build
 ```
 
 | Service | URL |
@@ -191,12 +191,12 @@ ENVIRONMENT=local uvicorn app.main:app --reload --port 8000
 # Terminal 2 — Recommendation Service
 cd cognibrew-recommendation-service
 pip install -r requirements.txt
-DEBUG=true uvicorn app.main:app --reload --port 8002
+DEBUG=true CATALOG_SERVICE_URL=http://localhost:8000 uvicorn app.main:app --reload --port 8002
 
 # Terminal 3 — API Gateway
 cd cognibrew-cloud-api-gateway
 pip install -r requirements.txt
-DEBUG=true uvicorn app.main:app --reload --port 8001
+ENVIRONMENT=local uvicorn app.main:app --reload --port 8001
 ```
 
 ---
@@ -204,27 +204,34 @@ DEBUG=true uvicorn app.main:app --reload --port 8001
 ## Testing the Flow End-to-End
 
 ```bash
-# 1. Get the menu
-curl http://localhost:8001/api/v1/catalog/menu/
+# 1. Confirm services are up
+curl http://localhost:8001/api/v1/utils/health-check/   # → true
+curl http://localhost:8000/api/v1/menu/                 # → menu items
+curl http://localhost:8002/api/v1/recommendation/       # → [] (empty at start)
 
-# 2. Trigger a face recognition event (recommendation service debug endpoint)
-curl -X POST http://localhost:8002/api/v1/recommendation/trigger \
+# 2. Fire a mock face recognition event
+docker compose run --rm mock-recognition --username alice --score 0.95
+
+# 3. Check the recommendation (1 beverage + 1 food)
+curl http://localhost:8002/api/v1/recommendation/alice
+
+# 4. Record an order to test personalisation
+curl -X POST http://localhost:8000/api/v1/order/ \
   -H "Content-Type: application/json" \
-  -d '{"username": "alice", "score": 0.95}'
+  -d '{"username": "alice", "item_id": "<item_id>", "device_id": "edge-device-01"}'
 
-# 3. Poll for the recommendation via the gateway
-curl http://localhost:8001/api/v1/recommendation/alice
+# 5. Fire again — ordered item should now appear first in its category
+docker compose run --rm mock-recognition --username alice --score 0.95
+curl http://localhost:8002/api/v1/recommendation/alice
 
-# 4. Record an order
-curl -X POST http://localhost:8001/api/v1/catalog/order/ \
+# 6. Submit feedback through the gateway
+curl -X POST http://localhost:8001/api/v1/feedback/ \
   -H "Content-Type: application/json" \
-  -d '{"username": "alice", "item_id": "caffe-latte-hot", "device_id": "edge-device-01"}'
+  -d '{"username": "alice", "device_id": "edge-device-01", "rating": 5, "comment": "Great!"}'
 
-# 5. Trigger again — recommendation should now reflect order history
-curl -X POST http://localhost:8002/api/v1/recommendation/trigger \
-  -H "Content-Type: application/json" \
-  -d '{"username": "alice", "score": 0.95}'
-curl http://localhost:8001/api/v1/recommendation/alice
+# 7. Test multiple random users
+docker compose run --rm mock-recognition --random --count 5 --interval 2
+curl http://localhost:8002/api/v1/recommendation/
 ```
 
 ---
