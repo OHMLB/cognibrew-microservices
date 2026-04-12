@@ -26,13 +26,13 @@ Recognition Service
    └──────────┘                                │
         │                                      │ HTTP GET /recommendation/{username}
         │ face.recognized                      ▼
-        ├──────────────────────────► ┌──────────────────┐
-        │                            │  Catalog Service  │
-        │ face.recognized            │     (:8000)       │
+        |                            ┌──────────────────┐
+        │                            │  Catalog Service │
+        │ face.recognized            │     (:8000)      │
         │ menu.recommended           │                  │
-        ▼                            │ - Menu CRUD       │◄── HTTP proxy
-   Notification Service              │ - Order history   │    from Gateway
-   (WebSocket / SignalR only)        │ - Rec strategy    │
+        ▼                            │ - Menu CRUD      │◄── HTTP proxy
+   Notification Service              │ - Order history  │    from Gateway
+   (WebSocket / SignalR only)        │ - Rec strategy   │
         │                            └──────────────────┘
         │ push via WebSocket / SignalR
         ▼
