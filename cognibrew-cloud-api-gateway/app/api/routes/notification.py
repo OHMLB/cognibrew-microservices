@@ -30,8 +30,9 @@ _BASE = settings.NOTIFICATION_SERVICE_URL
 
 
 def _build_hub_url(token: str | None) -> str:
-    """Build the SignalR hub URL with optional JWT token as query param."""
-    url = f"{_BASE.rstrip('/')}/chatHub"
+    """Build the SignalR hub WebSocket URL with optional JWT token as query param."""
+    base = _BASE.rstrip("/").replace("http://", "ws://").replace("https://", "wss://")
+    url = f"{base}/chatHub"
     if token:
         url += f"?access_token={token}"
     return url
@@ -73,15 +74,17 @@ def _parse_signalr_message(raw: str | bytes) -> dict | None:
 
 
 def _to_frontend_event(payload: dict) -> dict:
-    """Map Notification Service message fields to frontend-friendly format."""
-    username = payload.get("Username") or payload.get("username", "")
+    """Pass through the full Notification Service payload to the frontend.
+
+    The payload contains a 'customer' object with:
+      id, name, firstName, image (base64), rank, points,
+      usualOrder, upsell, greeting, isGuest, isRecommendationDown, etc.
+    """
+    customer = payload.get("customer") or payload.get("Customer") or {}
+    username = customer.get("name") or customer.get("Name", "")
     return {
-        "event": "face_recognized" if username else "face_unknown",
-        "face_id": payload.get("FaceId", ""),
-        "username": username,
-        "score": payload.get("Score") or payload.get("score", 0.0),
-        "recommended_menu": payload.get("RecommendedMenu") or [],
-        "message": payload.get("Message") or payload.get("message", ""),
+        "event": "face_recognized" if username and not customer.get("isGuest") else "face_unknown",
+        "customer": customer,
     }
 
 
@@ -127,10 +130,9 @@ async def notification_websocket(websocket: WebSocket, device_id: str) -> None:
                 event = _to_frontend_event(payload)
                 await websocket.send_json(event)
                 logger.info(
-                    "Relayed notification: username=%s face_id=%s score=%.2f",
-                    event["username"],
-                    event["face_id"],
-                    event["score"],
+                    "Relayed notification: event=%s username=%s",
+                    event["event"],
+                    event.get("customer", {}).get("name", "unknown"),
                 )
 
     except WebSocketDisconnect:

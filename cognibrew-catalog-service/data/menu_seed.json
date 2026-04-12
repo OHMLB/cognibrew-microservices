@@ -11,7 +11,7 @@
       "no-milk"
     ],
     "available": true,
-    "order_count": 0
+    "order_count": 3
   },
   {
     "item_id": "americano-hot",
@@ -65,7 +65,7 @@
       "classic"
     ],
     "available": true,
-    "order_count": 0
+    "order_count": 1
   },
   {
     "item_id": "cappuccino",

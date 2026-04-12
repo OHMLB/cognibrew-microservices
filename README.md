@@ -251,3 +251,246 @@ curl http://localhost:8002/api/v1/recommendation/
 - [API Gateway README](cognibrew-cloud-api-gateway/README.md)
 - [Catalog Service README](cognibrew-catalog-service/README.md)
 - [Recommendation Service README](cognibrew-recommendation-service/README.md)
+
+---
+
+## Full Loop Manual Test Guide
+
+This guide walks through the complete customer journey end-to-end using `curl` and `websocat` against the running Docker stack.
+
+> **Prerequisites:** Stack is up (`docker compose up --build`), `websocat` is installed (`brew install websocat`).
+
+---
+
+### Port Reference
+
+| Service | Port | Notes |
+|---|---|---|
+| API Gateway | `8001` | Single entry point for all requests below |
+| User Management | `60080` | Direct — register/login barista |
+| Member Service | `5012` | Direct — register customer membership |
+| RabbitMQ UI | `15672` | guest / guest |
+
+---
+
+### PHASE 1 — Barista Setup
+
+First of all, please bring all service below to this repo
+ - 
+
+#### Step 1 — Register a Barista account
+
+Barista accounts live in the User Management Service.
+
+```bash
+curl -s -X POST http://localhost:60080/user \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Alice",
+    "surname": "Smith",
+    "email": "alice@cognibrew.com",
+    "role": "User",
+    "pwd": "Alice@1234"
+  }'
+```
+
+Expected: HTTP 200 (empty body = success). HTTP 400 = already registered.
+
+#### Step 2 — Login and store JWT token
+
+```bash
+TOKEN=$(curl -s -X POST http://localhost:60080/token \
+  -H "Content-Type: application/json" \
+  -d '{"username":"alice@cognibrew.com","password":"Alice@1234"}' \
+  | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])")
+
+echo "Token: ${TOKEN:0:60}..."
+```
+
+> All subsequent requests that require auth use `-H "Authorization: Bearer $TOKEN"`.
+
+---
+
+### PHASE 2 — Customer Membership Registration
+
+Customer data (name, rank, face image) lives in the **Member Service**, not in User Management.
+
+#### Step 3 — Register customer membership (JSON + Base64 image)
+
+```bash
+curl -s -X POST http://localhost:5012/api/Member/upload \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{
+    "username": "alice",
+    "firstName": "Alice",
+    "lastName": "Wonderland",
+    "rank": "Gold",
+    "points": 120,
+    "imageBase64": ""
+  }' \
+  | python3 -m json.tool
+```
+
+Expected: `{ "Message": "Member uploaded successfully.", "MemberId": "...", "Username": "alice" }`
+
+> To register with an actual photo, use the `upload-with-image` endpoint (multipart form):
+> ```bash
+> curl -s -X POST http://localhost:5012/api/Member/upload-with-image \
+>   -H "Authorization: Bearer $TOKEN" \
+>   -F "username=alice" \
+>   -F "firstName=Alice" \
+>   -F "lastName=Wonderland" \
+>   -F "rank=Gold" \
+>   -F "points=120" \
+>   -F "image=@/path/to/photo.jpg" \
+>   | python3 -m json.tool
+> ```
+
+---
+
+### PHASE 3 — Open WebSocket to Watch Notifications
+
+Open a **new terminal** and keep it open throughout the test.
+
+#### Step 4 — Connect WebSocket (paste the token literally)
+
+```bash
+websocat "ws://localhost:8001/api/v1/notification/ws/edge-001?access_token=$TOKEN"
+```
+
+Leave this terminal running. Events will appear here automatically.
+
+---
+
+### PHASE 4 — Face Recognition
+
+#### Step 5 — Fire mock face recognition
+
+Open another terminal:
+
+```bash
+docker compose --profile mock run --rm mock-recognition \
+  --username alice --score 0.95
+```
+
+**Within seconds**, the WebSocket terminal (Step 4) receives two events:
+
+```json
+{"event":"face_recognized","customer":{"id":"face-alice-mock","name":"alice","usualOrder":"Espresso","upsell":"Butter Croissant",...}}
+```
+
+Note the `customer.id` value (e.g. `face-alice-mock`) — you will use it for feedback in Step 10.
+
+---
+
+### PHASE 5 — Browse the Menu
+
+#### Step 6 — Get the full menu
+
+```bash
+curl -s "http://localhost:8001/api/v1/catalog/menu" \
+  | python3 -c "
+import sys, json
+data = json.load(sys.stdin)
+for item in data.get('items', []):
+    print(item['item_id'], item['category'], item['name'])
+"
+```
+
+---
+
+### PHASE 6 — Recommendation
+
+#### Step 7 — Get personalised recommendation for the customer
+
+```bash
+curl -s "http://localhost:8001/api/v1/catalog/recommendation/alice" \
+  -H "Authorization: Bearer $TOKEN" \
+  | python3 -m json.tool
+```
+
+Expected: 2 items — 1 beverage + 1 food. For a new/unknown customer this returns the most popular items.
+
+---
+
+### PHASE 7 — Place an Order
+
+#### Step 8 — Record order (pick an `item_id` from Step 6 or 7)
+
+```bash
+ITEM_ID="Espresso"   # replace with real item_id from menu
+
+curl -s -X POST http://localhost:8001/api/v1/order/ \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d "{\"username\":\"alice\",\"item_id\":\"$ITEM_ID\",\"device_id\":\"edge-001\"}" \
+  | python3 -m json.tool
+```
+
+Expected: `{ "username": "alice", "item_id": "...", "ordered_at": "..." }`
+
+---
+
+### PHASE 8 — Order History
+
+#### Step 9 — View order history for the customer
+
+```bash
+curl -s "http://localhost:8001/api/v1/order/history/alice" \
+  -H "Authorization: Bearer $TOKEN" \
+  | python3 -m json.tool
+```
+
+Expected: list of `item_id` strings ordered from oldest to newest.
+
+#### Step 9b — Verify recommendation updated (fire recognition again)
+
+```bash
+docker compose --profile mock run --rm mock-recognition \
+  --username alice --score 0.95
+
+curl -s "http://localhost:8001/api/v1/catalog/recommendation/alice" \
+  -H "Authorization: Bearer $TOKEN" \
+  | python3 -m json.tool
+```
+
+The item ordered in Step 8 should now appear first in its category.
+
+---
+
+### PHASE 9 — Submit Feedback
+
+#### Step 10 — Confirm or reject the recognition result
+
+Use the `customer.id` from the WebSocket event (Step 5):
+
+```bash
+VECTOR_ID="face-alice-mock"   # replace with customer.id from notification
+
+curl -s -X PUT "http://localhost:8001/api/v1/feedback/$VECTOR_ID" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"feedback":"true"}' \
+  | python3 -m json.tool
+```
+
+`"feedback":"true"` = recognition was correct, `"false"` = recognition was wrong.
+
+---
+
+### Quick Summary Table
+
+| Step | Action | Endpoint | Auth |
+|---|---|---|---|
+| 1 | Register barista | `POST http://localhost:60080/user` | No |
+| 2 | Login → get TOKEN | `POST http://localhost:60080/token` | No |
+| 3 | Register customer membership | `POST http://localhost:5012/api/Member/upload` | JWT |
+| 4 | Open WebSocket (notification) | `ws://localhost:8001/api/v1/notification/ws/{device_id}` | JWT (query param) |
+| 5 | Fire face recognition | `docker compose run mock-recognition` | — |
+| 6 | Browse menu | `GET /api/v1/catalog/menu` | No |
+| 7 | Get recommendation | `GET /api/v1/catalog/recommendation/{username}` | JWT |
+| 8 | Place order | `POST /api/v1/order/` | JWT |
+| 9 | View order history | `GET /api/v1/order/history/{username}` | JWT |
+| 9b | Re-run recognition → check updated rec | `docker compose run mock-recognition` | — |
+| 10 | Submit feedback | `PUT /api/v1/feedback/{vector_id}` | JWT |

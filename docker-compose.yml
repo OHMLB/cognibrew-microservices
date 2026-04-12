@@ -30,8 +30,10 @@ services:
     env_file:
       - ./cognibrew-recommendation-service/.env.example
     depends_on:
-      - rabbitmq
-      - catalog-service
+      rabbitmq:
+        condition: service_healthy
+      catalog-service:
+        condition: service_started
     networks:
       - cognibrew-network
     restart: always
@@ -54,6 +56,268 @@ services:
     networks:
       - cognibrew-network
     restart: always
+
+  # ── Notification Service ─────────────────────────────────────────────────────
+  notification-service:
+    build:
+      context: ./SEMLS-cognibrew-notification
+      dockerfile: NotificationService/Dockerfile
+    platform: linux/amd64
+    container_name: cognibrew-notification
+    ports:
+      - "5010:8080"
+      - "5020:8081"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__MongoDb=mongodb://root:example@notification-mongodb:27017
+      - RabbitMQ__HostName=cognibrew-rabbitmq
+      - RabbitMQ__UserName=guest
+      - RabbitMQ__Password=guest
+      - RabbitMQ__RecommendationQueue=cognibrew.recommendation.notification_service
+      - RabbitMQ__RecommendationExchange=cognibrew.recommendation
+      - RabbitMQ__RecommendationRoutingKey=menu.recommended
+      - RabbitMQ__FaceResultQueue=cognibrew.inference.face_embeded.notification_service
+      - RabbitMQ__FaceResultExchange=cognibrew.inference
+      - RabbitMQ__FaceResultRoutingKey=face.recognized
+      - RabbitMQ__MemberQueue=cognibrew.member.notification_service
+      - RabbitMQ__MemberExchange=cognibrew.member
+      - RabbitMQ__MemberRoutingKey=member.memberInfo
+      - JWT_Issuer=semls-app-group
+      - JWT_Audience=semls-app-audience
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      notification-mongodb:
+        condition: service_started
+    networks:
+      - cognibrew-network
+    restart: always
+
+  notification-mongodb:
+    image: mongo:latest
+    container_name: notification-mongodb
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=example
+    ports:
+      - "28017:27017"
+    volumes:
+      - notification_mongo_data:/data/db
+    networks:
+      - cognibrew-network
+    restart: always
+
+  # ── Feedback Service ──────────────────────────────────────────────────────────
+  feedback-service:
+    build:
+      context: ./SEMLS-cognibrew-feedback
+      dockerfile: FeedbackService/Dockerfile
+    platform: linux/amd64
+    container_name: cognibrew-feedback
+    ports:
+      - "5011:8080"
+      - "5021:8081"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__MongoDb=mongodb://root:example@feedback-mongodb:27017
+      - RabbitMQ__HostName=cognibrew-rabbitmq
+      - RabbitMQ__UserName=guest
+      - RabbitMQ__Password=guest
+      - DEVICE_ID=edge-001
+      - SYNC_INTERVAL_MINUTES=1
+      - RabbitMQ__FaceResultQueue=cognibrew.inference.face_embeded.feedback_service
+      - RabbitMQ__FaceResultExchange=cognibrew.inference
+      - RabbitMQ__FaceResultRoutingKey=face.recognized
+      - GATEWAY_API_URL=http://api-gateway:8000/api/v1/feedback/
+      - JWT_Issuer=semls-app-group
+      - JWT_Audience=semls-app-audience
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      feedback-mongodb:
+        condition: service_started
+    networks:
+      - cognibrew-network
+    restart: always
+
+  feedback-mongodb:
+    image: mongo:latest
+    container_name: feedback-mongodb
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=example
+    ports:
+      - "28018:27017"
+    volumes:
+      - feedback_mongo_data:/data/db
+    networks:
+      - cognibrew-network
+    restart: always
+
+  # ── Member Service ───────────────────────────────────────────────────────────
+  member-service:
+    build:
+      context: ./SEMLS-cognibrew-member
+      dockerfile: MemberService/Dockerfile
+    platform: linux/amd64
+    container_name: cognibrew-member
+    ports:
+      - "5012:8080"
+      - "5022:8081"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__MongoDb=mongodb://root:example@member-mongodb:27017
+      - RabbitMQ__HostName=cognibrew-rabbitmq
+      - RabbitMQ__UserName=guest
+      - RabbitMQ__Password=guest
+      - RabbitMQ__FaceResultQueue=cognibrew.inference.face_embeded.member_service
+      - RabbitMQ__FaceResultExchange=cognibrew.inference
+      - RabbitMQ__FaceResultRoutingKey=face.recognized
+      - RabbitMQ__MemberExchange=cognibrew.member
+      - RabbitMQ__MemberRoutingKey=member.memberInfo
+      - Jwt__Issuer=semls-app-group
+      - Jwt__Audience=semls-app-audience
+      - Jwt__Key=5hSUiLqYu5jnTy2EG4JOLLCOTfgjzQ3NAeSCEPPyhO2ECLOTZSy2jX16uRrAOlSk5kqP6NLoa5X8fFKwAOuvGLhqBKbrMI9l2C2WFLKum8nfjolsynuTDEItZn7xWkaw41flM9OLFWuXhsoH2WWu7kETs6l1YIj0rjxqMU0YU7QSRDjlhh8Mek7oICFa8FhvFchPrzUwXAcG6krjkrujUmIjTFB2Pb1jytVZjTuyWpL3qmi51p57sR2OPeH67M3NHPKEypZoviC79iDVbA9kwf4JqJyUsaDhgWUJRD3l8CPPlsasiDHFN4jKpBj9CJzoMRAZ935xKM4r9RHRVhib96fmW4dZCrsD3fzQ95TCDW6bi39f1traglvzjfC919ReBQk57ZqEhViKpKm0uiBB1pbrKifs9r9LoZamE7FFZAYsbyvTJihg4CpKIRgoDfV28Zy4bv9zstWxCzoPhlae529pGXA6AorUwpbdBTV9OZRS9xyHFHWMAHTuLmiSeuzr
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      member-mongodb:
+        condition: service_started
+    networks:
+      - cognibrew-network
+    restart: always
+
+  member-mongodb:
+    image: mongo:latest
+    container_name: member-mongodb
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=example
+    ports:
+      - "28019:27017"
+    networks:
+      - cognibrew-network
+    restart: always
+
+  # ── User Management Service ───────────────────────────────────────────────────
+  user-management-service:
+    build:
+      context: ./SEMLS-cognibrew-usermanagement
+    container_name: usermanagement-1
+    restart: unless-stopped
+    environment:
+      JWT_SECRET_KEY: "5hSUiLqYu5jnTy2EG4JOLLCOTfgjzQ3NAeSCEPPyhO2ECLOTZSy2jX16uRrAOlSk5kqP6NLoa5X8fFKwAOuvGLhqBKbrMI9l2C2WFLKum8nfjolsynuTDEItZn7xWkaw41flM9OLFWuXhsoH2WWu7kETs6l1YIj0rjxqMU0YU7QSRDjlhh8Mek7oICFa8FhvFchPrzUwXAcG6krjkrujUmIjTFB2Pb1jytVZjTuyWpL3qmi51p57sR2OPeH67M3NHPKEypZoviC79iDVbA9kwf4JqJyUsaDhgWUJRD3l8CPPlsasiDHFN4jKpBj9CJzoMRAZ935xKM4r9RHRVhib96fmW4dZCrsD3fzQ95TCDW6bi39f1traglvzjfC919ReBQk57ZqEhViKpKm0uiBB1pbrKifs9r9LoZamE7FFZAYsbyvTJihg4CpKIRgoDfV28Zy4bv9zstWxCzoPhlae529pGXA6AorUwpbdBTV9OZRS9xyHFHWMAHTuLmiSeuzr"
+      JWT_ISSUER: "semls-app-group"
+      JWT_AUDIENCE: "semls-app-audience"
+      JWT_ALGORITHMS: "HS256"
+      JWT_ACCESS_TTL_MINUTES: "120"
+      DB_USER: "semls"
+      DB_PASSWORD: "semls2026"
+      DB_HOST: "usermanagement-pgbouncer"
+      DB_PORT: "6432"
+      DB_DATABASE: "cognibrew_project"
+      ENCODE_ID_KEY: "2l1agpomAa6WWtNhaKE6e31ZlAz4DsME"
+      ENCODE_ID_IV: "POjUqMS9iZogH2llb28NqhCH1Rv7uB12"
+      REST_PORT: "5001"
+      GRPC_PORT: "50051"
+      GRPC_MAX_WORKERS: "10"
+      AMQP_URL: "amqp://guest:guest@cognibrew-rabbitmq:5672/"
+      RMQ_EXCHANGE: "user.events"
+      OUTBOX_BATCH: "100"
+      OUTBOX_POLL_MS: "30000"
+      COMMANDS_EXCHANGE: "user.commands"
+      REPUBLISH_RK: "user.republish"
+      REPUBLISH_Q: "user.republish.q"
+      PREFETCH: "1"
+    ports:
+      - "60080:5001"
+    depends_on:
+      usermanagement-pgbouncer:
+        condition: service_started
+      usermanagement-db-init:
+        condition: service_completed_successfully
+    networks:
+      - cognibrew-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  usermanagement-pg:
+    image: postgres:13.22-trixie
+    container_name: usermanagement-pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: "semls"
+      POSTGRES_PASSWORD: "semls2026"
+      POSTGRES_DB: "cognibrew_project"
+    volumes:
+      - usermanagement_postgres_data:/var/lib/postgresql/data
+    networks:
+      - cognibrew-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U semls -d cognibrew_project"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  usermanagement-db-init:
+    build:
+      context: ./SEMLS-cognibrew-usermanagement
+      dockerfile: init-db/Dockerfile
+    depends_on:
+      usermanagement-pg:
+        condition: service_healthy
+    environment:
+      POSTGRES_HOST: usermanagement-pg
+      POSTGRES_USER: "semls"
+      POSTGRES_PASSWORD: "semls2026"
+      POSTGRES_DB: "cognibrew_project"
+    networks:
+      - cognibrew-network
+
+  usermanagement-pgbouncer:
+    image: edoburu/pgbouncer:v1.24.1-p1
+    container_name: usermanagement-pgbouncer
+    restart: unless-stopped
+    networks:
+      - cognibrew-network
+    volumes:
+      - ./SEMLS-cognibrew-usermanagement/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
+      - ./SEMLS-cognibrew-usermanagement/userlist.txt:/etc/pgbouncer/userlist.txt:ro
+    depends_on:
+      usermanagement-db-init:
+        condition: service_completed_successfully
+      usermanagement-pg:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "pgbouncer", "--version"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    command: ["pgbouncer", "/etc/pgbouncer/pgbouncer.ini"]
+
+  # ── Full Loop Test ───────────────────────────────────────────────────────────
+  # Run with: docker compose --profile test run --rm test-runner
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    container_name: cognibrew-test-runner
+    environment:
+      - GATEWAY=http://api-gateway:8000
+      - USERMGMT=http://user-management-service:5001
+      - CATALOG=http://catalog-service:8000
+    depends_on:
+      - api-gateway
+      - user-management-service
+      - catalog-service
+      - rabbitmq
+    networks:
+      - cognibrew-network
+    profiles:
+      - test
 
   # ── Mock Recognition Service ──────────────────────────────────────────────────
   # One-shot by default: sends 1 message for "alice" then exits.
@@ -84,6 +348,17 @@ services:
     networks:
       - cognibrew-network
     restart: always
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  usermanagement_postgres_data:
+  notification_mongo_data:
+  feedback_mongo_data:
 
 networks:
   cognibrew-network:
