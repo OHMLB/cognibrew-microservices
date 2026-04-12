@@ -276,7 +276,13 @@ This guide walks through the complete customer journey end-to-end using `curl` a
 ### PHASE 1 — Barista Setup
 
 First of all, please bring all service below to this repo
- - 
+
+```bash 
+- usermanagement service
+- members service
+- notification service
+- feedback service
+```
 
 #### Step 1 — Register a Barista account
 
