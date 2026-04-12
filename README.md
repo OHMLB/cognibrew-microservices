@@ -206,27 +206,40 @@ curl http://localhost:8001/api/v1/utils/health-check/   # → true
 curl http://localhost:8000/api/v1/menu/                 # → menu items
 curl http://localhost:8002/api/v1/recommendation/       # → [] (empty at start)
 
-# 2. Fire a mock face recognition event
+# 2. Get a JWT token (login via User Management Service)
+TOKEN=$(curl -s -X POST http://localhost:8003/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username": "alice", "password": "secret"}' | jq -r '.access_token')
+
+# 3. Fire a mock face recognition event
 docker compose run --rm mock-recognition --username alice --score 0.95
 
-# 3. Check the recommendation (1 beverage + 1 food)
-curl http://localhost:8002/api/v1/recommendation/alice
+# 4. Check the recommendation through the gateway (requires JWT)
+curl http://localhost:8001/api/v1/catalog/recommendation/alice \
+  -H "Authorization: Bearer $TOKEN"
+# → 2 items: 1 beverage + 1 food
 
-# 4. Record an order to test personalisation
-curl -X POST http://localhost:8000/api/v1/order/ \
+# 5. Record an order to test personalisation (requires JWT)
+curl -X POST http://localhost:8001/api/v1/order/ \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
   -d '{"username": "alice", "item_id": "<item_id>", "device_id": "edge-device-01"}'
 
-# 5. Fire again — ordered item should now appear first in its category
-docker compose run --rm mock-recognition --username alice --score 0.95
-curl http://localhost:8002/api/v1/recommendation/alice
+# 6. Check order history (requires JWT)
+curl http://localhost:8001/api/v1/order/history/alice \
+  -H "Authorization: Bearer $TOKEN"
 
-# 6. Submit feedback through the gateway
+# 7. Fire again — ordered item should now appear first in its category
+docker compose run --rm mock-recognition --username alice --score 0.95
+curl http://localhost:8001/api/v1/catalog/recommendation/alice \
+  -H "Authorization: Bearer $TOKEN"
+
+# 8. Submit feedback through the gateway
 curl -X POST http://localhost:8001/api/v1/feedback/ \
   -H "Content-Type: application/json" \
   -d '{"username": "alice", "device_id": "edge-device-01", "rating": 5, "comment": "Great!"}'
 
-# 7. Test multiple random users
+# 9. Test multiple random users
 docker compose run --rm mock-recognition --random --count 5 --interval 2
 curl http://localhost:8002/api/v1/recommendation/
 ```

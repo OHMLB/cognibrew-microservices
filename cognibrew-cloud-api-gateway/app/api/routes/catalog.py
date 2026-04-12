@@ -134,6 +134,7 @@ async def delete_menu_item(item_id: str, client: HttpClientDep, _: JWTDep) -> Re
 async def get_recommendation(
     username: str,
     client: HttpClientDep,
+    _: JWTDep,
     limit: int = Query(5, ge=1, le=20, description="Max number of recommendations"),
 ) -> JSONResponse:
     """Return personalised menu recommendations for a recognised customer."""
