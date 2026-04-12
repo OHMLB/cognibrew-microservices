@@ -1,0 +1,90 @@
+services:
+
+  # ── Catalog Service ───────────────────────────────────────────────────────────
+  catalog-service:
+    build:
+      context: ./cognibrew-catalog-service
+      dockerfile: Dockerfile
+    container_name: cognibrew-catalog
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./cognibrew-catalog-service/.env.example
+    volumes:
+      - ./cognibrew-catalog-service/data:/app/data
+      - ./cognibrew-catalog-service/data_test:/app/data_test
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT:-production}
+    networks:
+      - cognibrew-network
+    restart: always
+
+  # ── Recommendation Service ────────────────────────────────────────────────────
+  recommendation-service:
+    build:
+      context: ./cognibrew-recommendation-service
+      dockerfile: Dockerfile
+    container_name: cognibrew-recommendation
+    ports:
+      - "8002:8000"
+    env_file:
+      - ./cognibrew-recommendation-service/.env.example
+    depends_on:
+      - rabbitmq
+      - catalog-service
+    networks:
+      - cognibrew-network
+    restart: always
+
+  # ── API Gateway ───────────────────────────────────────────────────────────────
+  api-gateway:
+    build:
+      context: ./cognibrew-cloud-api-gateway
+      dockerfile: Dockerfile
+    container_name: cognibrew-gateway
+    ports:
+      - "8001:8000"
+    env_file:
+      - ./cognibrew-cloud-api-gateway/.env.example
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT:-production}
+    depends_on:
+      - catalog-service
+      - recommendation-service
+    networks:
+      - cognibrew-network
+    restart: always
+
+  # ── Mock Recognition Service ──────────────────────────────────────────────────
+  # One-shot by default: sends 1 message for "alice" then exits.
+  # Override via `docker compose run` to customise (see README).
+  mock-recognition:
+    build:
+      context: ./mock-recognition
+      dockerfile: Dockerfile
+    container_name: cognibrew-mock-recognition
+    command: ["--random", "--count", "5", "--interval", "3"]
+    depends_on:
+      - rabbitmq
+    networks:
+      - cognibrew-network
+    profiles:
+      - mock   # only starts with: docker compose --profile mock up
+
+  # ── RabbitMQ ──────────────────────────────────────────────────────────────────
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: cognibrew-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"   # Management UI → http://localhost:15672  (guest / guest)
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    networks:
+      - cognibrew-network
+    restart: always
+
+networks:
+  cognibrew-network:
+    driver: bridge

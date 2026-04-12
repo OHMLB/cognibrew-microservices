@@ -5,17 +5,24 @@
     "description": "A concentrated shot of coffee brewed by forcing hot water through finely ground beans.",
     "price": 55.0,
     "category": "Hot",
-    "tags": ["strong", "classic", "no-milk"],
+    "tags": [
+      "strong",
+      "classic",
+      "no-milk"
+    ],
     "available": true,
     "order_count": 0
   },
   {
     "item_id": "americano-hot",
     "name": "Americano (Hot)",
-    "description": "Espresso diluted with hot water — smooth and bold.",
+    "description": "Espresso diluted with hot water \u2014 smooth and bold.",
     "price": 65.0,
     "category": "Hot",
-    "tags": ["classic", "no-milk"],
+    "tags": [
+      "classic",
+      "no-milk"
+    ],
     "available": true,
     "order_count": 0
   },
@@ -25,7 +32,10 @@
     "description": "Espresso diluted with cold water and ice.",
     "price": 65.0,
     "category": "Cold",
-    "tags": ["classic", "no-milk"],
+    "tags": [
+      "classic",
+      "no-milk"
+    ],
     "available": true,
     "order_count": 0
   },
@@ -35,7 +45,11 @@
     "description": "Espresso with steamed milk and a light layer of foam.",
     "price": 80.0,
     "category": "Hot",
-    "tags": ["milky", "smooth", "classic"],
+    "tags": [
+      "milky",
+      "smooth",
+      "classic"
+    ],
     "available": true,
     "order_count": 0
   },
@@ -45,7 +59,11 @@
     "description": "Espresso with cold milk poured over ice.",
     "price": 80.0,
     "category": "Cold",
-    "tags": ["milky", "smooth", "classic"],
+    "tags": [
+      "milky",
+      "smooth",
+      "classic"
+    ],
     "available": true,
     "order_count": 0
   },
@@ -55,17 +73,25 @@
     "description": "Equal parts espresso, steamed milk, and thick foam.",
     "price": 80.0,
     "category": "Hot",
-    "tags": ["milky", "foamy", "classic"],
+    "tags": [
+      "milky",
+      "foamy",
+      "classic"
+    ],
     "available": true,
     "order_count": 0
   },
   {
     "item_id": "flat-white",
     "name": "Flat White",
-    "description": "Ristretto shots with velvety microfoam milk — stronger than a latte.",
+    "description": "Ristretto shots with velvety microfoam milk \u2014 stronger than a latte.",
     "price": 85.0,
     "category": "Hot",
-    "tags": ["strong", "milky", "smooth"],
+    "tags": [
+      "strong",
+      "milky",
+      "smooth"
+    ],
     "available": true,
     "order_count": 0
   },
@@ -75,7 +101,11 @@
     "description": "Espresso with chocolate syrup and steamed milk.",
     "price": 90.0,
     "category": "Hot",
-    "tags": ["sweet", "chocolate", "milky"],
+    "tags": [
+      "sweet",
+      "chocolate",
+      "milky"
+    ],
     "available": true,
     "order_count": 0
   },
@@ -85,7 +115,11 @@
     "description": "Espresso with chocolate syrup and cold milk over ice.",
     "price": 90.0,
     "category": "Cold",
-    "tags": ["sweet", "chocolate", "milky"],
+    "tags": [
+      "sweet",
+      "chocolate",
+      "milky"
+    ],
     "available": true,
     "order_count": 0
   },
@@ -95,7 +129,11 @@
     "description": "Vanilla syrup, steamed milk, espresso, and caramel drizzle.",
     "price": 95.0,
     "category": "Hot",
-    "tags": ["sweet", "caramel", "milky"],
+    "tags": [
+      "sweet",
+      "caramel",
+      "milky"
+    ],
     "available": true,
     "order_count": 0
   },
@@ -105,7 +143,11 @@
     "description": "Vanilla syrup, cold milk, espresso, and caramel drizzle over ice.",
     "price": 95.0,
     "category": "Cold",
-    "tags": ["sweet", "caramel", "milky"],
+    "tags": [
+      "sweet",
+      "caramel",
+      "milky"
+    ],
     "available": true,
     "order_count": 0
   },
@@ -115,7 +157,11 @@
     "description": "Premium matcha powder whisked with steamed milk.",
     "price": 90.0,
     "category": "Hot",
-    "tags": ["matcha", "milky", "earthy"],
+    "tags": [
+      "matcha",
+      "milky",
+      "earthy"
+    ],
     "available": true,
     "order_count": 0
   },
@@ -125,7 +171,11 @@
     "description": "Premium matcha powder with cold milk over ice.",
     "price": 90.0,
     "category": "Cold",
-    "tags": ["matcha", "milky", "earthy"],
+    "tags": [
+      "matcha",
+      "milky",
+      "earthy"
+    ],
     "available": true,
     "order_count": 0
   },
@@ -135,7 +185,11 @@
     "description": "Classic Thai tea with creamy condensed milk over ice.",
     "price": 75.0,
     "category": "Cold",
-    "tags": ["thai", "sweet", "milky"],
+    "tags": [
+      "thai",
+      "sweet",
+      "milky"
+    ],
     "available": true,
     "order_count": 0
   },
@@ -145,7 +199,11 @@
     "description": "Blended fresh strawberries with yoghurt and honey.",
     "price": 95.0,
     "category": "Blended",
-    "tags": ["fruity", "sweet", "no-coffee"],
+    "tags": [
+      "fruity",
+      "sweet",
+      "no-coffee"
+    ],
     "available": true,
     "order_count": 0
   },
@@ -155,7 +213,12 @@
     "description": "Blended coffee, milk, ice, and caramel sauce topped with whipped cream.",
     "price": 105.0,
     "category": "Blended",
-    "tags": ["sweet", "caramel", "cold", "coffee"],
+    "tags": [
+      "sweet",
+      "caramel",
+      "cold",
+      "coffee"
+    ],
     "available": true,
     "order_count": 0
   },
@@ -165,7 +228,11 @@
     "description": "Flaky, buttery croissant baked fresh daily.",
     "price": 55.0,
     "category": "Food",
-    "tags": ["bakery", "butter", "breakfast"],
+    "tags": [
+      "bakery",
+      "butter",
+      "breakfast"
+    ],
     "available": true,
     "order_count": 0
   },
@@ -175,7 +242,11 @@
     "description": "Moist banana bread slice with walnut topping.",
     "price": 60.0,
     "category": "Food",
-    "tags": ["bakery", "sweet", "nut-free-option"],
+    "tags": [
+      "bakery",
+      "sweet",
+      "nut-free-option"
+    ],
     "available": true,
     "order_count": 0
   },
@@ -185,17 +256,25 @@
     "description": "Classic dense and creamy cheesecake with graham cracker crust.",
     "price": 85.0,
     "category": "Food",
-    "tags": ["dessert", "sweet", "creamy"],
+    "tags": [
+      "dessert",
+      "sweet",
+      "creamy"
+    ],
     "available": true,
     "order_count": 0
   },
   {
     "item_id": "oat-milk-latte-cold",
     "name": "Oat Milk Latte (Cold)",
-    "description": "Espresso with oat milk over ice — dairy-free.",
+    "description": "Espresso with oat milk over ice - dairy-free.",
     "price": 90.0,
     "category": "Cold",
-    "tags": ["dairy-free", "smooth", "plant-based"],
+    "tags": [
+      "dairy-free",
+      "smooth",
+      "plant-based"
+    ],
     "available": true,
     "order_count": 0
   }

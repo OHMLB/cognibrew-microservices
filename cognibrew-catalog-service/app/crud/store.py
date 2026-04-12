@@ -154,41 +154,81 @@ def get_order_history(username: str) -> list[str]:
 
 # ── Recommendation ────────────────────────────────────────────────────────────
 
+_BEVERAGE_CATEGORIES = {"hot", "cold", "blended"}
+_FOOD_CATEGORIES = {"food"}
+
+
+def _pick_best(
+    candidates: dict[str, MenuItem],
+    category_set: set[str],
+    freq: Counter,
+    exclude: set[str],
+) -> MenuItem | None:
+    """Return the single best available item from a category group.
+
+    Priority:
+    1. Customer's most-frequently ordered item in this category.
+    2. Globally most popular item in this category not yet ordered by customer.
+    3. Any available item in this category (sorted by order_count descending).
+    """
+    pool = [
+        item for item in candidates.values()
+        if item.category.lower() in category_set and item.item_id not in exclude
+    ]
+    if not pool:
+        return None
+
+    # Step 1 — personalised (ordered before, highest frequency first)
+    ordered_in_pool = sorted(
+        [item for item in pool if item.item_id in freq],
+        key=lambda x: freq[x.item_id],
+        reverse=True,
+    )
+    if ordered_in_pool:
+        return ordered_in_pool[0]
+
+    # Step 2 & 3 — most popular (unordered by customer, then any)
+    return sorted(pool, key=lambda x: x.order_count, reverse=True)[0]
+
+
 def get_recommendations(username: str, limit: int = 5) -> list[MenuItem]:
-    """Return personalised menu recommendations for a recognised customer.
+    """Return exactly 2 personalised recommendations for a recognised customer:
+      [0] — best beverage (Hot / Cold / Blended)
+      [1] — best food item (Food)
 
-    Strategy (in priority order):
-    1. Items the customer has ordered before, ranked by frequency (personalised).
-    2. Fill remaining slots with globally popular items the customer has NOT ordered.
-    3. If still not enough, fill with any available items sorted by order_count.
+    Selection strategy per slot (in priority order):
+    1. Item the customer has ordered most frequently in that category.
+    2. Globally most popular item in that category the customer has not tried.
+    3. Any available item in that category, sorted by order_count descending.
 
-    All returned items must be currently available.
+    If a slot has no available item (e.g. no Food items in the menu),
+    it is omitted from the result — so the response may be 0, 1, or 2 items.
     """
     history = _orders.get(username, [])
+    freq: Counter = Counter(history)
     available = {i.item_id: i for i in get_all(available_only=True)}
-
-    recommended: list[MenuItem] = []
     seen: set[str] = set()
 
-    # Step 1 — personalised: items the customer ordered before, by frequency
-    if history:
-        freq = Counter(history)
-        for item_id, _ in freq.most_common():
-            if item_id in available and item_id not in seen:
-                recommended.append(available[item_id])
-                seen.add(item_id)
-            if len(recommended) >= limit:
-                return recommended
+    recommended: list[MenuItem] = []
 
-    # Step 2 — popular items the customer hasn't tried yet
-    popular = sorted(available.values(), key=lambda x: x.order_count, reverse=True)
-    for item in popular:
-        if item.item_id not in seen:
-            recommended.append(item)
-            seen.add(item.item_id)
-        if len(recommended) >= limit:
-            return recommended
+    # Slot 1 — beverage
+    beverage = _pick_best(available, _BEVERAGE_CATEGORIES, freq, seen)
+    if beverage:
+        recommended.append(beverage)
+        seen.add(beverage.item_id)
 
+    # Slot 2 — food
+    food = _pick_best(available, _FOOD_CATEGORIES, freq, seen)
+    if food:
+        recommended.append(food)
+        seen.add(food.item_id)
+
+    logger.info(
+        "Recommendations for username=%s → beverage=%s food=%s",
+        username,
+        recommended[0].item_id if len(recommended) > 0 else "none",
+        recommended[1].item_id if len(recommended) > 1 else "none",
+    )
     return recommended
 
 # ── Save ──────────────────────────────────────────────────────────────────────

@@ -4,13 +4,16 @@ Recommendation routes.
 When the recognition-service fires ``face.recognized``, the Frontend calls
 GET /recommendation/{username} to fetch personalised menu suggestions for
 the identified customer.
+
+Always returns exactly 2 items (if available):
+  [0] — best beverage (Hot / Cold / Blended)
+  [1] — best food item (Food)
 """
 
 import logging
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter
 
-from app.core.config import settings
 from app.crud import store
 from app.models.schemas import MenuItem
 
@@ -20,25 +23,16 @@ router = APIRouter(prefix="/recommendation", tags=["recommendation"])
 
 
 @router.get("/{username}", response_model=list[MenuItem])
-async def get_recommendation(
-    username: str,
-    limit: int = Query(
-        settings.DEFAULT_RECOMMENDATION_LIMIT,
-        ge=1,
-        le=20,
-        description="Max number of items to return",
-    ),
-) -> list[MenuItem]:
-    """Return personalised menu recommendations for a recognised customer.
+async def get_recommendation(username: str) -> list[MenuItem]:
+    """Return 2 personalised recommendations for a recognised customer.
 
-    Recommendation strategy (in order):
-    1. Items the customer has ordered before (ranked by frequency).
-    2. Globally popular items the customer has not yet tried.
-    3. Any available item, sorted by order count.
+    Result is always ordered as:
+      [0] best beverage (Hot / Cold / Blended) — personalised by order history, then popularity
+      [1] best food item (Food)                — personalised by order history, then popularity
 
-    All returned items are guaranteed to be currently available.
+    A slot is omitted only if the menu has no available items in that category.
     """
-    items = store.get_recommendations(username=username, limit=limit)
+    items = store.get_recommendations(username=username)
     logger.info(
         "Recommendation for username=%s → %d items returned",
         username,

@@ -1,7 +1,7 @@
 FROM python:3.10.18-slim
 
 LABEL description="CogniBrew Catalog Service"
-LABEL maintainer="Tinnapop Duangtha <tinnapopduangtha@gmail.com>"
+LABEL maintainer="Sukit Supaluckwatjana <sukit.sup@gmail.com>"
 
 ENV PYTHONUNBUFFERED=1
 

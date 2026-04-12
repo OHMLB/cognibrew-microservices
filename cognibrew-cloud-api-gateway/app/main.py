@@ -10,12 +10,7 @@ import logging
 from app.api.main import api_router
 from app.core.config import settings
 from app.core.logger import setup_logging
-
-# Use dummy consumer (no RabbitMQ needed) when DEBUG=True
-if settings.DEBUG:
-    from app.core.recognition_consumer_dummy import start_in_background
-else:
-    from app.core.recognition_consumer import start_in_background
+from app.core.recognition_consumer import start_in_background
 
 setup_logging()
 logger = logging.getLogger(__name__)
