@@ -192,20 +192,22 @@ def _pick_best(
 
 
 def get_recommendations(username: str, limit: int = 5) -> list[MenuItem]:
-    """Return exactly 2 personalised recommendations for a recognised customer:
+    """Return exactly 2 recommendations:
       [0] — best beverage (Hot / Cold / Blended)
       [1] — best food item (Food)
 
     Selection strategy per slot (in priority order):
-    1. Item the customer has ordered most frequently in that category.
-    2. Globally most popular item in that category the customer has not tried.
-    3. Any available item in that category, sorted by order_count descending.
+    1. If username is unknown (empty) or has no order history
+       → return the globally most popular item in each category.
+    2. Item the customer has ordered most frequently in that category.
+    3. Globally most popular item in that category the customer has not tried.
+    4. Any available item in that category, sorted by order_count descending.
 
     If a slot has no available item (e.g. no Food items in the menu),
     it is omitted from the result — so the response may be 0, 1, or 2 items.
     """
-    history = _orders.get(username, [])
-    freq: Counter = Counter(history)
+    is_known = bool(username) and username not in ("unknown", "") and username in _orders
+    freq: Counter = Counter(_orders[username]) if is_known else Counter()
     available = {i.item_id: i for i in get_all(available_only=True)}
     seen: set[str] = set()
 
