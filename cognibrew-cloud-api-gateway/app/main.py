@@ -10,7 +10,6 @@ import logging
 from app.api.main import api_router
 from app.core.config import settings
 from app.core.logger import setup_logging
-from app.core.recognition_consumer import start_in_background
 
 setup_logging()
 logger = logging.getLogger(__name__)
