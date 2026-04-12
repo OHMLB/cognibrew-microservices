@@ -28,7 +28,6 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     logger.info(
         "RabbitMQ → %s:%s", settings.RABBITMQ_HOST, settings.RABBITMQ_PORT
     )
-    start_in_background()
     yield
     logger.info("CogniBrew Cloud API Gateway shutting down")
 
