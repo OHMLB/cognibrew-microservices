@@ -1,3 +1,7 @@
 Dockerfile.test
 test_full_loop.py
 token_generate.py
+SEMLS-cognibrew-usermanagement/
+SEMLS-cognibrew-feedback/
+SEMLS-cognibrew-notification/
+SEMLS-cognibrew-member/
