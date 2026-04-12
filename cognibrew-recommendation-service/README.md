@@ -41,8 +41,6 @@ All routes are prefixed with `/api/v1`.
 | Method | Path | Description |
 |--------|------|-------------|
 | `GET` | `/recommendation/{username}` | Return the latest cached recommendation for a customer |
-| `GET` | `/recommendation/` | Return the latest recommendation for all users (debug) |
-| `POST` | `/recommendation/trigger` | Simulate a `face.recognized` event without RabbitMQ (debug only) |
 
 **Get recommendation example:**
 ```bash

@@ -11,7 +11,6 @@ Barista Frontend
 API Gateway  (:8001 host / :8000 container)
   ├── REST proxy → User Management Service  (:5001)
   ├── REST proxy → Catalog Service          (:8000)
-  ├── REST proxy → Recommendation Service  (:8000)
   ├── REST proxy → Feedback Service        (:8080)
   └── WebSocket bridge → Notification Service (SignalR hub /chatHub)
            ▲
@@ -58,12 +57,6 @@ Response:
 | `PATCH` | `/catalog/menu/{item_id}` | JWT | Partial update of a menu item |
 | `DELETE` | `/catalog/menu/{item_id}` | JWT | Delete a menu item |
 | `GET` | `/catalog/recommendation/{username}` | — | Personalised recommendations for a recognised customer |
-
-### Recommendation  (`/api/v1/recommendation`)
-
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| `GET` | `/recommendation/{username}` | JWT | Latest cached recommendation for a customer |
 
 ### Feedback  (`/api/v1/feedback`)
 
