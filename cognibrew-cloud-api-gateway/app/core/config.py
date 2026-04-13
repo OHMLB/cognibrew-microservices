@@ -1,3 +1,4 @@
+import os
 from typing import Literal
 from pydantic import computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -30,10 +31,11 @@ class Settings(BaseSettings):
     JWT_AUDIENCE: str = "DEFAULT-AUDIENCE"
     JWT_ALGORITHMS: str = "HS256"
 
-
     @computed_field  # ← Pydantic v2
     @property
     def CATALOG_SERVICE_URL(self) -> str:
+        if override := os.getenv("CATALOG_SERVICE_URL"):
+            return override
         if self.ENVIRONMENT == "local" or self.DEBUG:
             return "http://localhost:8000"
         return "http://catalog-service:8000"
@@ -41,6 +43,8 @@ class Settings(BaseSettings):
     @computed_field
     @property
     def RECOMMENDATION_SERVICE_URL(self) -> str:
+        if override := os.getenv("RECOMMENDATION_SERVICE_URL"):
+            return override
         if self.ENVIRONMENT == "local" or self.DEBUG:
             return "http://localhost:8002"
         return "http://recommendation-service:8000"
@@ -48,6 +52,8 @@ class Settings(BaseSettings):
     @computed_field
     @property
     def USER_MANAGEMENT_SERVICE_URL(self) -> str:
+        if override := os.getenv("USER_MANAGEMENT_SERVICE_URL"):
+            return override
         if self.ENVIRONMENT == "local" or self.DEBUG:
             return "http://localhost:8003"
         return "http://user-management-service:5001"
@@ -55,6 +61,8 @@ class Settings(BaseSettings):
     @computed_field
     @property
     def FEEDBACK_SERVICE_URL(self) -> str:
+        if override := os.getenv("FEEDBACK_SERVICE_URL"):
+            return override
         if self.ENVIRONMENT == "local" or self.DEBUG:
             return "http://localhost:5086"
         return "http://feedback-service:8080"
@@ -62,6 +70,8 @@ class Settings(BaseSettings):
     @computed_field
     @property
     def NOTIFICATION_SERVICE_URL(self) -> str:
+        if override := os.getenv("NOTIFICATION_SERVICE_URL"):
+            return override
         if self.ENVIRONMENT == "local" or self.DEBUG:
             return "http://localhost:5019"
         return "http://notification-service:8080"
